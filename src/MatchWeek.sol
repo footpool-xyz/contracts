@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts-upgradeable-4.7.3/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable-4.7.3/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract MatchWeek is Initializable, OwnableUpgradeable {
 
