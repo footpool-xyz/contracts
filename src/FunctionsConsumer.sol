@@ -21,9 +21,7 @@ contract FunctionsConsumer is FunctionsClient, ConfirmedOwner {
 
     event Response(bytes32 indexed requestId, bytes response, bytes err);
 
-    constructor(
-        address router
-    ) FunctionsClient(router) ConfirmedOwner(msg.sender) {}
+    constructor(address router) FunctionsClient(router) ConfirmedOwner(msg.sender) {}
 
     /**
      * @notice Send a simple request
@@ -48,22 +46,14 @@ contract FunctionsConsumer is FunctionsClient, ConfirmedOwner {
     ) external onlyOwner returns (bytes32 requestId) {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source);
-        if (encryptedSecretsUrls.length > 0)
+        if (encryptedSecretsUrls.length > 0) {
             req.addSecretsReference(encryptedSecretsUrls);
-        else if (donHostedSecretsVersion > 0) {
-            req.addDONHostedSecrets(
-                donHostedSecretsSlotID,
-                donHostedSecretsVersion
-            );
+        } else if (donHostedSecretsVersion > 0) {
+            req.addDONHostedSecrets(donHostedSecretsSlotID, donHostedSecretsVersion);
         }
         if (args.length > 0) req.setArgs(args);
         if (bytesArgs.length > 0) req.setBytesArgs(bytesArgs);
-        s_lastRequestId = _sendRequest(
-            req.encodeCBOR(),
-            subscriptionId,
-            gasLimit,
-            jobId
-        );
+        s_lastRequestId = _sendRequest(req.encodeCBOR(), subscriptionId, gasLimit, jobId);
         return s_lastRequestId;
     }
 
@@ -74,11 +64,7 @@ contract FunctionsConsumer is FunctionsClient, ConfirmedOwner {
      * @param err Aggregated error from the user code or from the execution pipeline
      * Either response or error parameter will be set, but never both
      */
-    function fulfillRequest(
-        bytes32 requestId,
-        bytes memory response,
-        bytes memory err
-    ) internal override {
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
         if (s_lastRequestId != requestId) {
             revert UnexpectedRequestID(requestId);
         }
@@ -87,7 +73,7 @@ contract FunctionsConsumer is FunctionsClient, ConfirmedOwner {
         emit Response(requestId, s_lastResponse, s_lastError);
     }
 
-    function getResponse() external virtual view returns (string memory) {
+    function getResponse() external view virtual returns (string memory) {
         return string(abi.encodePacked(s_lastResponse));
     }
 }

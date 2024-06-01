@@ -6,13 +6,12 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./MatchWeek.sol";
 
 contract MatchWeekFactory is Ownable {
-
     event MatchWeekCreated(address addr, string name);
-    event MatchWeekEnabled(uint id);
-    event MatchWeekClosed(uint id);
+    event MatchWeekEnabled(uint256 id);
+    event MatchWeekClosed(uint256 id);
 
-    mapping(uint => MatchWeek) public matchWeeks;
-    uint[] matchWeeksIds;
+    mapping(uint256 => MatchWeek) public matchWeeks;
+    uint256[] matchWeeksIds;
     address private libraryAddress;
     address private consumerAddress;
 
@@ -28,7 +27,7 @@ contract MatchWeekFactory is Ownable {
 
     function createMatchWeek(string memory name) external onlyOwner {
         MatchWeek matchWeek = MatchWeek(Clones.clone(libraryAddress));
-        uint newId = matchWeeksIds.length + 1;
+        uint256 newId = matchWeeksIds.length + 1;
         matchWeek.initialize(newId, name, msg.sender, consumerAddress);
         matchWeeks[newId] = matchWeek;
         matchWeeksIds.push(newId);
@@ -36,21 +35,21 @@ contract MatchWeekFactory is Ownable {
     }
 
     function getMatchWeeks() external view returns (MatchWeek[] memory) {
-        uint length = matchWeeksIds.length;
+        uint256 length = matchWeeksIds.length;
         MatchWeek[] memory _matchWeeks = new MatchWeek[](length);
-        for (uint i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             _matchWeeks[i] = matchWeeks[matchWeeksIds[i]];
         }
 
         return _matchWeeks;
     }
 
-    function enable(uint matchWeekId) external onlyOwner {
+    function enable(uint256 matchWeekId) external onlyOwner {
         matchWeeks[matchWeekId].enable();
         emit MatchWeekEnabled(matchWeekId);
     }
 
-    function close(uint matchWeekId) external onlyOwner {
+    function close(uint256 matchWeekId) external onlyOwner {
         matchWeeks[matchWeekId].close();
         emit MatchWeekClosed(matchWeekId);
     }

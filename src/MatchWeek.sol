@@ -7,10 +7,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./FunctionsConsumer.sol";
 
 contract MatchWeek is Initializable, OwnableUpgradeable {
-
-    event BetAdded(address indexed sender, uint amount, Bet[] bets);
-    event RewardSended(address indexed to, uint reward);
-    event RefundSent(address to, uint refunded);
+    event BetAdded(address indexed sender, uint256 amount, Bet[] bets);
+    event RewardSended(address indexed to, uint256 reward);
+    event RefundSent(address to, uint256 refunded);
 
     struct Bet {
         uint32 matchId;
@@ -33,23 +32,27 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         LOCAL_WIN, // 0
         DRAW, // 1
         AWAY_WIN, // 2
-        UNDEFINED  // 3
+        UNDEFINED // 3
+
     }
 
-    mapping(uint => Match) public matches;
-    uint[] private matchesIds;
+    mapping(uint256 => Match) public matches;
+    uint256[] private matchesIds;
     uint8 private matchesLength;
     mapping(address => Bet[]) private betsByStakeholder;
     address[] private stakeholders;
     FunctionsConsumer public consumer;
     IERC20 token;
 
-    uint id;
+    uint256 id;
     string public description;
     bool public isEnabled;
     bool public isClosed;
 
-    function initialize(uint _id, string memory _description, address _owner, address _consumer) public initializer {
+    function initialize(uint256 _id, string memory _description, address _owner, address _consumer)
+        public
+        initializer
+    {
         __Ownable_init(_owner);
         id = _id;
         isEnabled = false;
@@ -62,7 +65,7 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         isEnabled = true;
     }
 
-    function summary() external view returns (string memory, bool, bool, uint, uint) {
+    function summary() external view returns (string memory, bool, bool, uint256, uint256) {
         return (description, isEnabled, isClosed, stakeholders.length, id);
     }
 
@@ -81,7 +84,7 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     }
 
     function getMatches() public view returns (Match[] memory) {
-        uint matchesIdsLentgh = matchesIds.length;
+        uint256 matchesIdsLentgh = matchesIds.length;
         Match[] memory _matches = new Match[](matchesLength);
         for (uint8 i = 0; i < matchesIdsLentgh; ++i) {
             _matches[i] = matches[matchesIds[i]];
@@ -106,7 +109,6 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         }
         stakeholders.push(msg.sender);
         emit BetAdded(msg.sender, amount, betsByStakeholder[msg.sender]);
-
     }
 
     function getMyBets(address user) public view returns (Bet[] memory) {
@@ -128,7 +130,7 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     }
 
     function sendRewardsToWinners() private onlyOwner {
-        uint stakeholdersLength = stakeholders.length;
+        uint256 stakeholdersLength = stakeholders.length;
         address[] memory winners = new address[](stakeholders.length);
         uint8 winnersCount = 0;
         for (uint8 i; i < stakeholdersLength; ++i) {
@@ -159,12 +161,12 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         }
     }
 
-    function getRewardToSend(uint winnersLength) private view returns (uint) {
-        uint currentBalance = token.balanceOf(address(this));
+    function getRewardToSend(uint256 winnersLength) private view returns (uint256) {
+        uint256 currentBalance = token.balanceOf(address(this));
         uint32 rewardPercentage = 90;
 
-        uint reward = currentBalance / 100 * rewardPercentage;
-        uint userReward = reward / winnersLength;
+        uint256 reward = currentBalance / 100 * rewardPercentage;
+        uint256 userReward = reward / winnersLength;
 
         return userReward;
     }
@@ -182,12 +184,12 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         require(isClosed == true, "This is not closed yet!");
 
         address owner = owner();
-        uint balance = token.balanceOf(address(this));
+        uint256 balance = token.balanceOf(address(this));
         token.transfer(owner, balance);
     }
 
     function refundToStakeholders() external onlyOwner {
-        uint stakeholdersLength = stakeholders.length;
+        uint256 stakeholdersLength = stakeholders.length;
         uint256 amount = 5 * (10 ** 18);
         for (uint32 i; i < stakeholdersLength; i++) {
             address to = stakeholders[i];
