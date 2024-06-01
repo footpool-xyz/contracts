@@ -3,6 +3,8 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./FunctionsConsumer.sol";
 
 contract MatchWeek is Initializable, OwnableUpgradeable {
 
@@ -48,8 +50,7 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     bool public isClosed;
 
     function initialize(uint _id, string memory _description, address _owner, address _consumer) public initializer {
-        __Ownable_init();
-        transferOwnership(_owner);
+        __Ownable_init(_owner);
         id = _id;
         isEnabled = false;
         description = _description;

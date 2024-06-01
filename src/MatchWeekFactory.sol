@@ -2,6 +2,8 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./MatchWeek.sol";
 
 contract MatchWeekFactory is Ownable {
 
@@ -13,6 +15,8 @@ contract MatchWeekFactory is Ownable {
     uint[] matchWeeksIds;
     address private libraryAddress;
     address private consumerAddress;
+
+    constructor(address initialOwner) Ownable(initialOwner) {}
 
     function setLibraryAddress(address _libraryAddress) external onlyOwner {
         libraryAddress = _libraryAddress;
