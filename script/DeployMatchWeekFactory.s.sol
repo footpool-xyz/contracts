@@ -12,13 +12,17 @@ import {HelperConfig} from "./HelperConfig.s.sol";
 contract DeployMatchWeekFactory is Script {
     function run() external {
         HelperConfig helperConfig = new HelperConfig();
-        (address usdtToken, address consumer) = helperConfig.activeNetworkConfig();
+        (address usdtToken, address oracleConsumer) = helperConfig.activeNetworkConfig();
 
         vm.startBroadcast();
         MatchWeek matchWeek = new MatchWeek();
         MatchWeekFactory factory = new MatchWeekFactory(msg.sender);
         factory.setLibraryAddress(address(matchWeek));
-        factory.setConsumerAddress(consumer);
+        factory.setConsumerAddress(oracleConsumer);
         vm.stopBroadcast();
+
+        console.log("Factory contract deployed at: %s", address(factory));
+        console.log("USDT token contract deployed at: %s", usdtToken);
+        console.log("Consumer contract deployed at: %s", oracleConsumer);
     }
 }
