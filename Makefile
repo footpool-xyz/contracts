@@ -18,7 +18,7 @@ clean  :; forge clean
 # Remove modules
 remove :; rm -rf .gitmodules && rm -rf .git/modules/* && rm -rf lib && touch .gitmodules && git add . && git commit -m "modules"
 
-install :; forge install openzeppelin/openzeppelin-contracts-upgradable@5.0.2 --no-commit && forge install openzeppelin/openzeppelin-contracts@5.0.2 --no-commit && forge install foundry-rs/forge-std@v1.8.2 --no-commit && forge install smartcontractkit/chainlink
+install :; forge install openzeppelin/openzeppelin-contracts-upgradeable@5.0.2 --no-commit && forge install openzeppelin/openzeppelin-contracts@5.0.2 --no-commit && forge install foundry-rs/forge-std@v1.8.2 --no-commit && forge install smartcontractkit/chainlink
 
 # Update Dependencies
 update:; forge update
