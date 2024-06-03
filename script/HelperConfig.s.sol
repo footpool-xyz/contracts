@@ -6,7 +6,7 @@ import {MockUsdtToken} from "../test/mock/MockUsdtToken.sol";
 import {MockFunctionsConsumer} from "../test/mock/MockFunctionsConsumer.sol";
 
 contract HelperConfig is Script {
-    uint constant SEPOLIA_CHAIN_ID = 11155111;
+    uint256 constant SEPOLIA_CHAIN_ID = 11155111;
 
     NetworkConfig public activeNetworkConfig;
 
