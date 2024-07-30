@@ -5,52 +5,89 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./MatchWeek.sol";
 
+/**
+ * @title Match Week Factory.
+ * @notice This contract is the manager of match weeks, creating new ones
+ * and closing/enabling them also.
+ */
 contract MatchWeekFactory is Ownable {
     event MatchWeekCreated(address addr, string name);
     event MatchWeekEnabled(uint256 id);
     event MatchWeekClosed(uint256 id);
 
-    mapping(uint256 => MatchWeek) public matchWeeks;
-    uint256[] matchWeeksIds;
-    address private libraryAddress;
-    address private consumerAddress;
+    mapping(uint256 => MatchWeek) public s_matchWeeks;
+
+    uint256[] private s_matchWeeksIds;
+    address private s_matchWeekAddress;
+    address private s_consumerAddress;
 
     constructor(address initialOwner) Ownable(initialOwner) {}
 
-    function setLibraryAddress(address _libraryAddress) external onlyOwner {
-        libraryAddress = _libraryAddress;
-    }
-
-    function setConsumerAddress(address _consumerAddress) external onlyOwner {
-        consumerAddress = _consumerAddress;
-    }
-
+    /**
+     * Creation of a new match week.
+     * @param name Name of match week. For example: Match Week One.
+     * @dev Only owner can create new match weeks.
+     */
     function createMatchWeek(string memory name) external onlyOwner {
-        MatchWeek matchWeek = MatchWeek(Clones.clone(libraryAddress));
-        uint256 newId = matchWeeksIds.length + 1;
-        matchWeek.initialize(newId, name, msg.sender, consumerAddress);
-        matchWeeks[newId] = matchWeek;
-        matchWeeksIds.push(newId);
-        emit MatchWeekCreated(address(matchWeek), name);
+        uint256 newId = s_matchWeeksIds.length + 1;
+
+        MatchWeek newMatchWeek = MatchWeek(Clones.clone(s_matchWeekAddress));
+        newMatchWeek.initialize(s_matchWeeksIds.length + 1, name, msg.sender, s_consumerAddress);
+        s_matchWeeks[newId] = newMatchWeek;
+        s_matchWeeksIds.push(newId);
+        emit MatchWeekCreated(address(newMatchWeek), name);
     }
 
+    /**
+     * Get all match weeks to list it. No state filter applied.
+     */
     function getMatchWeeks() external view returns (MatchWeek[] memory) {
-        uint256 length = matchWeeksIds.length;
-        MatchWeek[] memory _matchWeeks = new MatchWeek[](length);
-        for (uint256 i = 0; i < length; i++) {
-            _matchWeeks[i] = matchWeeks[matchWeeksIds[i]];
+        uint256 numOfMatchWeeks = s_matchWeeksIds.length;
+        MatchWeek[] memory matchWeeks = new MatchWeek[](numOfMatchWeeks);
+        for (uint256 i = 0; i < numOfMatchWeeks; i++) {
+            matchWeeks[i] = s_matchWeeks[s_matchWeeksIds[i]];
         }
 
-        return _matchWeeks;
+        return matchWeeks;
     }
 
-    function enable(uint256 matchWeekId) external onlyOwner {
-        matchWeeks[matchWeekId].enable();
-        emit MatchWeekEnabled(matchWeekId);
+    /**
+     * Can enable a Match Week by its id. Enable means that anyone can see it and
+     * is ready to get submitted bets.
+     * @param id Match Week id.
+     * @dev Only owner can create new match weeks.
+     */
+    function enableMatchWeekById(uint256 id) external onlyOwner {
+        s_matchWeeks[id].enable();
+        emit MatchWeekEnabled(id);
     }
 
-    function close(uint256 matchWeekId) external onlyOwner {
-        matchWeeks[matchWeekId].close();
-        emit MatchWeekClosed(matchWeekId);
+    /**
+     * Can close a Match Week by its id. Close means that nobody can do any more actions on it.
+     * Not even owner can modify state. Just withdraw remaining ERC20 amount.
+     * @param id Match Week id.
+     * @dev Only owner can create new match weeks.
+     */
+    function closeMatchWeekById(uint256 id) external onlyOwner {
+        s_matchWeeks[id].close();
+        emit MatchWeekClosed(id);
+    }
+
+    /**
+     * Set the Match Week to be cloned from.
+     * @param matchWeekAddress Match Week to be cloned from Address.
+     * @dev Only owner can create new match weeks.
+     */
+    function setMatchWeekAddress(address matchWeekAddress) external onlyOwner {
+        s_matchWeekAddress = matchWeekAddress;
+    }
+
+    /**
+     * Set the consumer address. This consumer gets the matches and results from Oracles.
+     * @param consumerAddress Consumer address.
+     * @dev Only owner can create new match weeks.
+     */
+    function setConsumerAddress(address consumerAddress) external onlyOwner {
+        s_consumerAddress = consumerAddress;
     }
 }

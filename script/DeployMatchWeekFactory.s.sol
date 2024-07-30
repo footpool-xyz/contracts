@@ -17,7 +17,7 @@ contract DeployMatchWeekFactory is Script {
         vm.startBroadcast();
         MatchWeek matchWeek = new MatchWeek();
         MatchWeekFactory factory = new MatchWeekFactory(msg.sender);
-        factory.setLibraryAddress(address(matchWeek));
+        factory.setMatchWeekAddress(address(matchWeek));
         factory.setConsumerAddress(oracleConsumer);
         vm.stopBroadcast();
 
