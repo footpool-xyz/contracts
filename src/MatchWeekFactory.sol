@@ -28,7 +28,7 @@ contract MatchWeekFactory is Ownable {
      * @param name Name of match week. For example: Match Week One.
      * @dev Only owner can create new match weeks.
      */
-    function createMatchWeek(string memory name) external onlyOwner {
+    function createMatchWeek(string memory name) external onlyOwner returns (MatchWeek) {
         uint256 newId = s_matchWeeksIds.length + 1;
 
         MatchWeek newMatchWeek = MatchWeek(Clones.clone(s_matchWeekAddress));
@@ -36,6 +36,8 @@ contract MatchWeekFactory is Ownable {
         s_matchWeeks[newId] = newMatchWeek;
         s_matchWeeksIds.push(newId);
         emit MatchWeekCreated(address(newMatchWeek), name);
+
+        return newMatchWeek;
     }
 
     /**
