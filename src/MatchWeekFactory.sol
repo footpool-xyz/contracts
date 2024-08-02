@@ -14,6 +14,8 @@ contract MatchWeekFactory is Ownable {
     event MatchWeekCreated(address addr, string name);
     event MatchWeekEnabled(uint256 id);
     event MatchWeekClosed(uint256 id);
+    event MatchWeekClonableAddressChanged(address cloneAddr);
+    event ConsumerAddressChanged(address consumerAddr);
 
     mapping(uint256 => MatchWeek) public s_matchWeeks;
 
@@ -82,6 +84,7 @@ contract MatchWeekFactory is Ownable {
      */
     function setMatchWeekAddress(address matchWeekAddress) external onlyOwner {
         s_matchWeekAddress = matchWeekAddress;
+        emit MatchWeekClonableAddressChanged(matchWeekAddress);
     }
 
     /**
@@ -91,5 +94,6 @@ contract MatchWeekFactory is Ownable {
      */
     function setConsumerAddress(address consumerAddress) external onlyOwner {
         s_consumerAddress = consumerAddress;
+        emit ConsumerAddressChanged(consumerAddress);
     }
 }
