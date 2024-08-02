@@ -44,7 +44,7 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     FunctionsConsumer public consumer;
     IERC20 token;
 
-    uint256 id;
+    uint256 public id;
     string public description;
     bool public isEnabled;
     bool public isClosed;
