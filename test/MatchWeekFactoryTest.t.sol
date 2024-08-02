@@ -8,7 +8,7 @@ import {MockFunctionsConsumer} from "./mock/MockFunctionsConsumer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MatchWeekFactoryTest is Test {
-    event MatchWeekCreated(address addr, string name);
+    event MatchWeekCreated();
     event MatchWeekEnabled(uint256 id);
     event MatchWeekClosed(uint256 id);
     event MatchWeekClonableAddressChanged(address cloneAddr);
@@ -32,9 +32,7 @@ contract MatchWeekFactoryTest is Test {
 
     function testCanCreateANewMatchWeek() public {
         vm.prank(OWNER);
-        vm.expectEmit(true, true, false, true);
         MatchWeek matchWeekCreated = factory.createMatchWeek("The one");
-        emit MatchWeekCreated(address(matchWeekCreated), "The one");
 
         assertEq("The one", matchWeekCreated.description());
     }
@@ -59,6 +57,8 @@ contract MatchWeekFactoryTest is Test {
         bool previousState = matchWeek.isEnabled();
 
         vm.startPrank(OWNER);
+        vm.expectEmit(true, false, false, true);
+        emit MatchWeekEnabled(matchWeek.id());
         factory.enableMatchWeekById(matchWeek.id());
         bool endState = matchWeek.isEnabled();
         vm.stopPrank();
@@ -80,6 +80,8 @@ contract MatchWeekFactoryTest is Test {
         bool previousState = matchWeek.isClosed();
 
         vm.startPrank(OWNER);
+        vm.expectEmit(true, false, false, true);
+        emit MatchWeekClosed(matchWeek.id());
         factory.closeMatchWeekById(matchWeek.id());
         bool endState = matchWeek.isClosed();
         vm.stopPrank();
