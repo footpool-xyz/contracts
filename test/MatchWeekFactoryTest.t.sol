@@ -34,7 +34,7 @@ contract MatchWeekFactoryTest is Test {
         vm.prank(OWNER);
         MatchWeek matchWeekCreated = factory.createMatchWeek("The one");
 
-        assertEq("The one", matchWeekCreated.description());
+        assertEq("The one", matchWeekCreated.title());
     }
 
     function testRevertsIfNoOwnerCreateMatchWeek() public {
@@ -47,9 +47,9 @@ contract MatchWeekFactoryTest is Test {
         MatchWeek[] memory matchWeeks = factory.getMatchWeeks();
 
         assertEq(3, matchWeeks.length);
-        assertEq("One", matchWeeks[0].description());
-        assertEq("Two", matchWeeks[1].description());
-        assertEq("Three", matchWeeks[2].description());
+        assertEq("One", matchWeeks[0].title());
+        assertEq("Two", matchWeeks[1].title());
+        assertEq("Three", matchWeeks[2].title());
     }
 
     function testCanEnableMatchWeek() public feedSingleMatchWeek {
