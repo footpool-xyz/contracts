@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {MatchWeek} from "../src/MatchWeek.sol";
 import {MockFunctionsConsumer} from "./mock/MockFunctionsConsumer.sol";
 import {MockUsdtToken} from "./mock/MockUsdtToken.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract MatchWeekTest is Test {
     event EnabledMatchWeek(uint256 id);
@@ -12,12 +13,15 @@ contract MatchWeekTest is Test {
 
     MockFunctionsConsumer consumer;
     MatchWeek.Match[] matchesToAdd;
+    IERC20 token;
 
     address OWNER = makeAddr("owner");
     address USER = makeAddr("user");
 
     function setUp() public {
         consumer = new MockFunctionsConsumer();
+
+        token = new MockUsdtToken();
 
         matchesToAdd.push(MatchWeek.Match(1, "RMadrid", "FCBarcelona", MatchWeek.Result.UNDEFINED));
         matchesToAdd.push(MatchWeek.Match(2, "ATMadrid", "Athletic", MatchWeek.Result.UNDEFINED));
@@ -80,5 +84,30 @@ contract MatchWeekTest is Test {
 
         MatchWeek.Match[] memory matchesAdded = matchWeek.getMatches();
         assertEq(2, matchesAdded.length);
+    }
+
+    function testOnlyOwnerCanAddMatches() public {
+        MatchWeek matchWeek = new MatchWeek();
+        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, USER));
+        matchWeek.addMatches(matchesToAdd);
+    }
+
+    function testRevertsWhenTryingToAddMatchesAndMatchWeekIsClosed() public {
+        MatchWeek matchWeek = new MatchWeek();
+        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+
+        vm.prank(OWNER);
+        matchWeek.close();
+
+        vm.expectRevert(MatchWeek.MatchWeek__AlreadyClosed.selector);
+        vm.prank(OWNER);
+        matchWeek.addMatches(matchesToAdd);
+    }
+
+    function testCanAddBets() public {
+
     }
 }
