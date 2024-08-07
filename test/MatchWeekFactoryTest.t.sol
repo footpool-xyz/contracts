@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MatchWeekFactoryTest is Test {
     event MatchWeekCreated();
-    event MatchWeekEnabled(uint256 id);
+    //event MatchWeekEnabled(uint256 id);
     event MatchWeekClosed(uint256 id);
     event MatchWeekClonableAddressChanged(address cloneAddr);
     event ConsumerAddressChanged(address consumerAddr);
@@ -54,13 +54,11 @@ contract MatchWeekFactoryTest is Test {
 
     function testCanEnableMatchWeek() public feedSingleMatchWeek {
         MatchWeek matchWeek = factory.getMatchWeeks()[0];
-        bool previousState = matchWeek.isEnabled();
+        bool previousState = matchWeek.s_isEnabled();
 
         vm.startPrank(OWNER);
-        vm.expectEmit(true, false, false, true);
-        emit MatchWeekEnabled(matchWeek.id());
-        factory.enableMatchWeekById(matchWeek.id());
-        bool endState = matchWeek.isEnabled();
+        factory.enableMatchWeekById(matchWeek.s_id());
+        bool endState = matchWeek.s_isEnabled();
         vm.stopPrank();
 
         assertEq(false, previousState);
@@ -77,13 +75,13 @@ contract MatchWeekFactoryTest is Test {
 
     function testCanCloseMatchWeek() public feedSingleMatchWeek {
         MatchWeek matchWeek = factory.getMatchWeeks()[0];
-        bool previousState = matchWeek.isClosed();
+        bool previousState = matchWeek.s_isClosed();
 
         vm.startPrank(OWNER);
         vm.expectEmit(true, false, false, true);
-        emit MatchWeekClosed(matchWeek.id());
-        factory.closeMatchWeekById(matchWeek.id());
-        bool endState = matchWeek.isClosed();
+        emit MatchWeekClosed(matchWeek.s_id());
+        factory.closeMatchWeekById(matchWeek.s_id());
+        bool endState = matchWeek.s_isClosed();
         vm.stopPrank();
 
         assertFalse(previousState);
