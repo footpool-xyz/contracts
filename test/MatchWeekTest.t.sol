@@ -30,8 +30,7 @@ contract MatchWeekTest is Test {
     }
 
     function testCanEnableMatchWeek() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
         bool previousState = matchWeek.s_isEnabled();
 
         vm.startPrank(OWNER);
@@ -46,8 +45,7 @@ contract MatchWeekTest is Test {
     }
 
     function testOnlyOwnerCanEnableMatchWeek() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
 
         vm.prank(USER);
         vm.expectRevert(MatchWeek.MatchWeek__OnlyFactoryOrOwnerAllowed.selector);
@@ -55,8 +53,7 @@ contract MatchWeekTest is Test {
     }
 
     function testCanCloseOnlyWhenIsOpen() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
 
         vm.prank(OWNER);
         matchWeek.close();
@@ -74,8 +71,7 @@ contract MatchWeekTest is Test {
     }
 
     function testCanAddMatches() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
 
         vm.prank(OWNER);
         vm.expectEmit(true, false, false, true);
@@ -89,8 +85,7 @@ contract MatchWeekTest is Test {
     }
 
     function testOnlyOwnerCanAddMatches() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
 
         vm.prank(USER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, USER));
@@ -98,8 +93,7 @@ contract MatchWeekTest is Test {
     }
 
     function testRevertsWhenTryingToAddMatchesAndMatchWeekIsClosed() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
 
         vm.prank(OWNER);
         matchWeek.close();
@@ -110,10 +104,8 @@ contract MatchWeekTest is Test {
     }
 
     function testCanAddBets() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
-        betsToAdd.push(MatchWeek.Bet(1, MatchWeek.Result.LOCAL_WIN));
-        betsToAdd.push(MatchWeek.Bet(2, MatchWeek.Result.DRAW));
+        MatchWeek matchWeek = _initializeMatchWeek();
+        _populateBets();
 
         vm.prank(OWNER);
         matchWeek.addMatches(matchesToAdd);
@@ -143,5 +135,20 @@ contract MatchWeekTest is Test {
         vm.prank(USER);
         vm.expectRevert(MatchWeek.MatchWeek__NotEnoughTokenAllowance.selector);
         matchWeek.addBets(betsToAdd, address(token));
+    }
+
+    /**
+     * Helper functions
+     */
+    function _initializeMatchWeek() public returns (MatchWeek) {
+        MatchWeek matchWeek = new MatchWeek();
+        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+
+        return matchWeek;
+    }
+
+    function _populateBets() public {
+        betsToAdd.push(MatchWeek.Bet(1, MatchWeek.Result.LOCAL_WIN));
+        betsToAdd.push(MatchWeek.Bet(2, MatchWeek.Result.DRAW));
     }
 }
