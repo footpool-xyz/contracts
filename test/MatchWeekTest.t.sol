@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {MatchWeek} from "../src/MatchWeek.sol";
 import {MockFunctionsConsumer} from "./mock/MockFunctionsConsumer.sol";
 import {MockUsdtToken} from "./mock/MockUsdtToken.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MatchWeekTest is Test {
     event EnabledMatchWeek(uint256 id);
@@ -13,7 +14,8 @@ contract MatchWeekTest is Test {
 
     MockFunctionsConsumer consumer;
     MatchWeek.Match[] matchesToAdd;
-    IERC20 token;
+    MatchWeek.Bet[] betsToAdd;
+    MockUsdtToken token;
 
     address OWNER = makeAddr("owner");
     address USER = makeAddr("user");
@@ -108,6 +110,38 @@ contract MatchWeekTest is Test {
     }
 
     function testCanAddBets() public {
+        MatchWeek matchWeek = new MatchWeek();
+        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        betsToAdd.push(MatchWeek.Bet(1, MatchWeek.Result.LOCAL_WIN));
+        betsToAdd.push(MatchWeek.Bet(2, MatchWeek.Result.DRAW));
 
+        vm.prank(OWNER);
+        matchWeek.addMatches(matchesToAdd);
+
+        vm.startPrank(USER);
+        token.mint(USER);
+        token.approve(address(matchWeek), 5 * 1e18);
+        matchWeek.addBets(betsToAdd, address(token));
+        vm.stopPrank();
+
+        MatchWeek.Bet[] memory myBets = matchWeek.getMyBets(USER);
+        assert(MatchWeek.Result.LOCAL_WIN == myBets[0].result);
+        assert(MatchWeek.Result.DRAW == myBets[1].result);
+    }
+
+    function testCantBetWhenNoTokenAllowance() public {
+        MatchWeek matchWeek = new MatchWeek();
+        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        betsToAdd.push(MatchWeek.Bet(1, MatchWeek.Result.LOCAL_WIN));
+        betsToAdd.push(MatchWeek.Bet(2, MatchWeek.Result.DRAW));
+
+        vm.prank(OWNER);
+        matchWeek.addMatches(matchesToAdd);
+
+        token.mint(USER);
+
+        vm.prank(USER);
+        vm.expectRevert(MatchWeek.MatchWeek__NotEnoughTokenAllowance.selector);
+        matchWeek.addBets(betsToAdd, address(token));
     }
 }

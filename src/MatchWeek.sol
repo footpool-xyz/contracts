@@ -10,6 +10,7 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     error MatchWeek__AlreadyClosed();
     error MatchWeek_NotClosedYet();
     error MatchWeek__OnlyFactoryOrOwnerAllowed();
+    error MatchWeek__NotEnoughTokenAllowance();
 
     event BetAdded(address indexed sender, uint256 amount, Bet[] bets);
     event RewardSended(address indexed to, uint256 reward);
@@ -17,7 +18,8 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     event EnabledMatchWeek(uint256 id);
     event MatchAdded(uint256 id);
 
-    uint256 private constant AMOUNT_TO_BET = 5 * 1e18;
+    uint256 private constant DECIMALS = 1e18;
+    uint256 private constant AMOUNT_TO_BET = 5 * DECIMALS;
     uint256 private constant REWARD_PERCENTAGE = 90;
     uint256 private constant BASE_PERCENTAGE = 91000;
 
@@ -103,20 +105,8 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
     }
 
     function addBets(Bet[] calldata bets, address paymentTokenAddress) external onlyOpen {
-        s_token = IERC20(paymentTokenAddress);
-        uint256 allowedAmountToTransfer = s_token.allowance(msg.sender, address(this)) * (10 ** 18);
-        require(AMOUNT_TO_BET <= allowedAmountToTransfer, "You need to approve your tokens first");
-        s_token.transferFrom(msg.sender, address(this), AMOUNT_TO_BET);
-
-        uint256 betsLength = bets.length;
-        for (uint8 i; i < betsLength; ++i) {
-            uint32 matchId = bets[i].matchId;
-            Result result = bets[i].result;
-
-            s_betsByStakeholder[msg.sender].push(Bet(matchId, result));
-        }
-        s_stakeholders.push(msg.sender);
-        emit BetAdded(msg.sender, AMOUNT_TO_BET, s_betsByStakeholder[msg.sender]);
+        _betPayment(paymentTokenAddress);
+        _storeBets(bets);
     }
 
     function addResults(MatchResult[] calldata results) external onlyOwner onlyOpen {
@@ -133,7 +123,6 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         if (s_isClosed == false) {
             revert MatchWeek_NotClosedYet();
         }
-        require(s_isClosed == true, "This is not closed yet!");
 
         address owner = owner();
         uint256 balance = s_token.balanceOf(address(this));
@@ -219,6 +208,27 @@ contract MatchWeek is Initializable, OwnableUpgradeable {
         uint256 userReward = reward / winnersLength;
 
         return userReward;
+    }
+
+    function _betPayment(address paymentTokenAddress) private {
+        s_token = IERC20(paymentTokenAddress);
+        uint256 allowedAmountToTransfer = s_token.allowance(msg.sender, address(this)) * DECIMALS;
+        if (AMOUNT_TO_BET > allowedAmountToTransfer) {
+            revert MatchWeek__NotEnoughTokenAllowance();
+        }
+        s_token.transferFrom(msg.sender, address(this), AMOUNT_TO_BET);
+    }
+
+    function _storeBets(Bet[] calldata bets) private {
+        uint256 betsLength = bets.length;
+        for (uint8 i; i < betsLength; ++i) {
+            uint32 matchId = bets[i].matchId;
+            Result result = bets[i].result;
+
+            s_betsByStakeholder[msg.sender].push(Bet(matchId, result));
+        }
+        s_stakeholders.push(msg.sender);
+        emit BetAdded(msg.sender, AMOUNT_TO_BET, s_betsByStakeholder[msg.sender]);
     }
 
     /**
