@@ -24,9 +24,6 @@ contract MatchWeekTest is Test {
         consumer = new MockFunctionsConsumer();
 
         token = new MockUsdtToken();
-
-        matchesToAdd.push(MatchWeek.Match(1, "RMadrid", "FCBarcelona", MatchWeek.Result.UNDEFINED));
-        matchesToAdd.push(MatchWeek.Match(2, "ATMadrid", "Athletic", MatchWeek.Result.UNDEFINED));
     }
 
     function testCanEnableMatchWeek() public {
@@ -60,8 +57,7 @@ contract MatchWeekTest is Test {
     }
 
     function testRevertsClosingWhenIsAlreadyClosed() public {
-        MatchWeek matchWeek = new MatchWeek();
-        matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
+        MatchWeek matchWeek = _initializeMatchWeek();
 
         vm.startPrank(OWNER);
         matchWeek.close();
@@ -72,6 +68,7 @@ contract MatchWeekTest is Test {
 
     function testCanAddMatches() public {
         MatchWeek matchWeek = _initializeMatchWeek();
+        _populateMatchesToAdd();
 
         vm.prank(OWNER);
         vm.expectEmit(true, false, false, true);
@@ -86,6 +83,7 @@ contract MatchWeekTest is Test {
 
     function testOnlyOwnerCanAddMatches() public {
         MatchWeek matchWeek = _initializeMatchWeek();
+        _populateMatchesToAdd();
 
         vm.prank(USER);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, USER));
@@ -94,6 +92,7 @@ contract MatchWeekTest is Test {
 
     function testRevertsWhenTryingToAddMatchesAndMatchWeekIsClosed() public {
         MatchWeek matchWeek = _initializeMatchWeek();
+        _populateMatchesToAdd();
 
         vm.prank(OWNER);
         matchWeek.close();
@@ -105,10 +104,8 @@ contract MatchWeekTest is Test {
 
     function testCanAddBets() public {
         MatchWeek matchWeek = _initializeMatchWeek();
-        _populateBets();
-
-        vm.prank(OWNER);
-        matchWeek.addMatches(matchesToAdd);
+        _populateMatchesToAdd();
+        _populateBetsToAdd();
 
         vm.startPrank(USER);
         token.mint(USER);
@@ -140,15 +137,22 @@ contract MatchWeekTest is Test {
     /**
      * Helper functions
      */
-    function _initializeMatchWeek() public returns (MatchWeek) {
+    function _initializeMatchWeek() private returns (MatchWeek) {
         MatchWeek matchWeek = new MatchWeek();
         matchWeek.initialize(1, "First MatchWeek", OWNER, address(consumer));
 
         return matchWeek;
     }
 
-    function _populateBets() public {
+    function _populateBetsToAdd() private {
         betsToAdd.push(MatchWeek.Bet(1, MatchWeek.Result.LOCAL_WIN));
         betsToAdd.push(MatchWeek.Bet(2, MatchWeek.Result.DRAW));
+    }
+
+    function _populateMatchesToAdd() private {
+        vm.startPrank(OWNER);
+        matchesToAdd.push(MatchWeek.Match(1, "RMadrid", "FCBarcelona", MatchWeek.Result.UNDEFINED));
+        matchesToAdd.push(MatchWeek.Match(2, "ATMadrid", "Athletic", MatchWeek.Result.UNDEFINED));
+        vm.stopPrank();
     }
 }
